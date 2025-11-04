@@ -1,0 +1,7 @@
+@import "tailwindcss";
+body { @apply bg-gray-50 text-gray-900 antialiased; }
+
+/* * { box-sizing: border-box; }
+input, select, button { padding: 8px; border-radius: 8px; border: 1px solid #ddd; }
+button { cursor: pointer; }
+section { margin-top: 24px; } */
