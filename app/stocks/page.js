@@ -78,6 +78,7 @@ export default function StocksPage() {
               <th className="px-4 py-3 font-semibold">Model</th>
               <th className="px-4 py-3 font-semibold">Storage</th>
               <th className="px-4 py-3 font-semibold">Price</th>
+              <th className="px-4 py-3 font-semibold">IMEI</th>
               <th className="px-4 py-3 font-semibold">Ownership</th>
               <th className="px-4 py-3 font-semibold">Belongs To</th>
               <th className="px-4 py-3 font-semibold">Added</th>
@@ -86,11 +87,11 @@ export default function StocksPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-4 py-4 text-gray-500" colSpan={6}>Loading…</td>
+                <td className="px-4 py-4 text-gray-500" colSpan={7}>Loading…</td>
               </tr>
             ) : phones.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-gray-500 text-center" colSpan={6}>
+                <td className="px-4 py-6 text-gray-500 text-center" colSpan={7}>
                   No phones available. Click <span className="font-semibold">“Add Stock”</span> to add one.
                 </td>
               </tr>
@@ -100,6 +101,7 @@ export default function StocksPage() {
                   <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
                   <td className="px-4 py-3">{p.storage}</td>
                   <td className="px-4 py-3">{Number(p.price).toLocaleString()}</td>
+                  <td className="px-4 py-3">{p.imei || '—'}</td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
                       {p.ownershipType === 'OWNER' ? 'Owner' : p.ownershipType === 'INVESTOR' ? 'Investor' : 'Credit'}
@@ -131,7 +133,7 @@ export default function StocksPage() {
 /** Add Stock Modal/Form */
 function AddStockModal({ investors, credits, onClose, onAdded }) {
   const [ownershipType, setOwnershipType] = useState('OWNER');
-  const [form, setForm] = useState({ name: '', storage: '', price: '' });
+  const [form, setForm] = useState({ name: '', storage: '', price: '', imei: '' }); // 👈 IMEI in state
   const [investorId, setInvestorId] = useState('');
   const [creditPartyId, setCreditPartyId] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -146,6 +148,7 @@ function AddStockModal({ investors, credits, onClose, onAdded }) {
         name: form.name.trim(),
         storage: form.storage.trim(),
         price: Number(form.price),
+        imei: form.imei.trim() || undefined, // 👈 send when present
       };
       if (!payload.name || !payload.storage || isNaN(payload.price)) {
         setError('Please fill all fields correctly.'); setSubmitting(false); return;
@@ -269,6 +272,19 @@ function AddStockModal({ investors, credits, onClose, onAdded }) {
             />
           </div>
 
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">IMEI (optional)</label>
+            <input
+              className="rounded-xl border border-gray-300 px-3 py-2"
+              placeholder="e.g. 356938035643809"
+              value={form.imei}
+              onChange={e => setForm({ ...form, imei: e.target.value })}
+              // If you want to restrict to digits & length, uncomment:
+              // pattern="\d{14,16}"
+              // title="Enter 14–16 digits"
+            />
+          </div>
+
           {error && (
             <div className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
@@ -300,7 +316,6 @@ function AddStockModal({ investors, credits, onClose, onAdded }) {
 function extractError(e) {
   try {
     const msg = typeof e === 'string' ? e : e?.message || '';
-    // Try to parse server JSON error if thrown by api()
     const m = msg.match(/\{.*\}/s);
     if (m) {
       const o = JSON.parse(m[0]);

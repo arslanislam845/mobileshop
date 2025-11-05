@@ -9,12 +9,12 @@ export default function CreditDetail({ params }) {
   const [err, setErr] = useState('');
 
   // add phone form
-  const [form, setForm] = useState({ name: '', storage: '', price: '' });
+  const [form, setForm] = useState({ name: '', storage: '', price: '', imei: '' });
   const [saving, setSaving] = useState(false);
 
   // inline edit
   const [editId, setEditId] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', storage: '', price: '' });
+  const [editForm, setEditForm] = useState({ name: '', storage: '', price: '', imei: '' });
   const [editSaving, setEditSaving] = useState(false);
 
   // inline sell
@@ -52,9 +52,10 @@ export default function CreditDetail({ params }) {
           name: form.name.trim(),
           storage: form.storage.trim(),
           price: Number(form.price),
+          imei: form.imei.trim() || undefined,
         }),
       });
-      setForm({ name: '', storage: '', price: '' });
+      setForm({ name: '', storage: '', price: '', imei: '' });
       await load();
     } catch (e) {
       setErr(extractError(e));
@@ -83,8 +84,14 @@ export default function CreditDetail({ params }) {
     if (p.isSold) return;
     setSellId(null);
     setEditId(p._id);
-    setEditForm({ name: p.name, storage: p.storage, price: String(p.price ?? '') });
+    setEditForm({
+      name: p.name,
+      storage: p.storage,
+      price: String(p.price ?? ''),
+      imei: p.imei || '',             // ✅ fixed comma + IMEI
+    });
   }
+
   async function saveEdit() {
     if (!editId) return;
     setEditSaving(true);
@@ -95,6 +102,7 @@ export default function CreditDetail({ params }) {
           name: editForm.name.trim(),
           storage: editForm.storage.trim(),
           price: Number(editForm.price),
+          imei: editForm.imei.trim() || undefined,
         }),
       });
       setEditId(null);
@@ -168,7 +176,6 @@ export default function CreditDetail({ params }) {
         method: 'POST',
         body: JSON.stringify({
           amount: amt,
-          // backend may use either `paidAt` or `date`; send both if present for compatibility
           paidAt: payment.paidAt || undefined,
           date: payment.paidAt || undefined,
           note: payment.note?.trim() || undefined,
@@ -219,13 +226,10 @@ export default function CreditDetail({ params }) {
         <Stat title="All Phones" value={allCount} />
         <Stat title="Phones Value" value={formatCurrency(allTotal)} />
         <Stat title="Paid" value={formatCurrency(paymentsTotal)} />
-        
         <Stat title="Available (Unsold)" value={`${availCount} · ${formatCurrency(availTotal)}`} />
       </div>
 
       {err && <div className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
-
-    
 
       {/* Payments */}
       <form onSubmit={addPayment} className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -296,16 +300,19 @@ export default function CreditDetail({ params }) {
           </tbody>
         </table>
       </div>
-  {/* Add Phone */}
+
+      {/* Add Phone */}
       <form onSubmit={addPhone} className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <h3 className="text-lg font-semibold">Add Phone</h3>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
           <input className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Model" required
             value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Storage" required
             value={form.storage} onChange={e => setForm({ ...form, storage: e.target.value })} />
           <input type="number" min="0" className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Buy Price" required
             value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+          <input className="rounded-xl border border-gray-300 px-3 py-2" placeholder="IMEI (optional)"
+            value={form.imei} onChange={e => setForm({ ...form, imei: e.target.value })} />
         </div>
         <div className="flex items-center justify-end">
           <button type="submit" disabled={saving}
@@ -314,7 +321,8 @@ export default function CreditDetail({ params }) {
           </button>
         </div>
       </form>
-      {/* Phones table */}
+
+      {/* Phones table (with IMEI) */}
       <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-600">
@@ -322,6 +330,7 @@ export default function CreditDetail({ params }) {
               <th className="px-4 py-3 font-semibold">Model</th>
               <th className="px-4 py-3 font-semibold">Storage</th>
               <th className="px-4 py-3 font-semibold">Buy Price</th>
+              <th className="px-4 py-3 font-semibold">IMEI</th> {/* ✅ new */}
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Added</th>
               <th className="px-4 py-3 font-semibold text-right">Actions</th>
@@ -329,7 +338,7 @@ export default function CreditDetail({ params }) {
           </thead>
           <tbody>
             {phones.length === 0 ? (
-              <tr><td className="px-4 py-6 text-center text-gray-500" colSpan={6}>No phones yet.</td></tr>
+              <tr><td className="px-4 py-6 text-center text-gray-500" colSpan={7}>No phones yet.</td></tr>
             ) : phones.map(p => {
                 const isEditing = editId === p._id;
                 const isSelling = sellId === p._id;
@@ -352,6 +361,12 @@ export default function CreditDetail({ params }) {
                         ? <input type="number" min="0" className="w-full rounded-xl border border-gray-300 px-3 py-2"
                             value={editForm.price} onChange={e => setEditForm({ ...editForm, price: e.target.value })} />
                         : formatCurrency(p.price)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isEditing
+                        ? <input className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                            value={editForm.imei} onChange={e => setEditForm({ ...editForm, imei: e.target.value })} />
+                        : (p.imei || '—')}
                     </td>
                     <td className="px-4 py-3">
                       {p.isSold
@@ -418,9 +433,7 @@ function Stat({ title, value }) {
 
 function sum(arr) { return arr.reduce((acc, n) => acc + Number(n || 0), 0); }
 function formatCurrency(n) { return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
-function formatDate(d) {
-  try { return new Date(d).toLocaleDateString(); } catch { return '—'; }
-}
+function formatDate(d) { try { return new Date(d).toLocaleDateString(); } catch { return '—'; } }
 function extractError(e) {
   try {
     const msg = typeof e === 'string' ? e : e?.message || '';

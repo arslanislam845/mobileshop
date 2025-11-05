@@ -8,12 +8,12 @@ export default function InvestorDetail({ params }) {
   const [err, setErr] = useState('');
 
   // add phone
-  const [form, setForm] = useState({ name: '', storage: '', price: '' });
+  const [form, setForm] = useState({ name: '', storage: '', price: '', imei: '' });
   const [saving, setSaving] = useState(false);
 
   // edit
   const [editId, setEditId] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', storage: '', price: '' });
+  const [editForm, setEditForm] = useState({ name: '', storage: '', price: '', imei: '' });
   const [editSaving, setEditSaving] = useState(false);
 
   // sell
@@ -52,9 +52,10 @@ export default function InvestorDetail({ params }) {
           name: form.name.trim(),
           storage: form.storage.trim(),
           price: Number(form.price),
+          imei: form.imei.trim() || undefined, 
         }),
       });
-      setForm({ name: '', storage: '', price: '' });
+      setForm({ name: '', storage: '', price: '', imei: '' });
       await load();
     } catch (e) {
       setErr(extractError(e));
@@ -90,7 +91,7 @@ export default function InvestorDetail({ params }) {
     if (p.isSold) return;
     setSellId(null);
     setEditId(p._id);
-    setEditForm({ name: p.name, storage: p.storage, price: String(p.price ?? '') });
+    setEditForm({ name: p.name, storage: p.storage, price: String(p.price ?? ''),imei: p.imei || '' });
   }
   async function saveEdit() {
     if (!editId) return;
@@ -103,6 +104,7 @@ export default function InvestorDetail({ params }) {
           name: editForm.name.trim(),
           storage: editForm.storage.trim(),
           price: Number(editForm.price),
+          imei: editForm.imei.trim() || undefined, 
         }),
       });
       setEditId(null);
@@ -313,6 +315,8 @@ export default function InvestorDetail({ params }) {
             value={form.storage} onChange={e => setForm({ ...form, storage: e.target.value })} />
           <input required type="number" min="0" className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Buy Price"
             value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+          <input className="rounded-xl border border-gray-300 px-3 py-2" placeholder="IMEI (optional)"
+        value={form.imei} onChange={e => setForm({ ...form, imei: e.target.value })} />
         </div>
         <div className="flex items-center justify-end">
           <button type="submit" disabled={saving}
@@ -368,6 +372,7 @@ function PhonesTable(props) {
             <th className="px-4 py-3 font-semibold">Model</th>
             <th className="px-4 py-3 font-semibold">Storage</th>
             <th className="px-4 py-3 font-semibold">Buy Price</th>
+            <th className="px-4 py-3 font-semibold">IMEI</th>
             <th className="px-4 py-3 font-semibold">Sell Price</th>
             <th className="px-4 py-3 font-semibold">Profit</th>
             <th className="px-4 py-3 font-semibold">Investor Profit (50%)</th>
@@ -418,6 +423,17 @@ function PhonesTable(props) {
                       />
                     ) : formatCurrency(p.price)}
                   </td>
+                   <td className="px-4 py-3">
+              {isEditing ? (
+                <input
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                  value={editForm.imei}
+                  onChange={e => setEditForm({ ...editForm, imei: e.target.value })}
+                />
+              ) : (
+                p.imei || '—'
+              )}
+            </td>
                   <td className="px-4 py-3">
                     {p.isSold && !isSelling ? (
                       formatCurrency(p.sellPrice)
