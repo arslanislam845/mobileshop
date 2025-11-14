@@ -517,7 +517,7 @@ function PhonesTable(props) {
                       <input
                         type="number"
                         min="0"
-                        className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                        className="no-spinner w-full rounded-xl border border-gray-300 px-2 py-2"
                         value={editForm.price}
                         onChange={(e) =>
                           setEditForm((prev) => ({ ...prev, price: e.target.value }))
@@ -529,7 +529,7 @@ function PhonesTable(props) {
                   </td>
 
                   {/* IMEI */}
-                  <td className="px-4 py-3">
+                  {/* <td className="px-4 py-3">
                     {isEditing ? (
                       <input
                         className="w-full rounded-xl border border-gray-300 px-3 py-2"
@@ -541,8 +541,10 @@ function PhonesTable(props) {
                     ) : (
                       p.imei || '—'
                     )}
+                  </td> */}
+                  <td className="px-4 py-3">
+                    {p.imei || '—'}
                   </td>
-
                   {/* Sell Price */}
                   <td className="px-4 py-3">
                     {p.isSold && !isSelling ? (
