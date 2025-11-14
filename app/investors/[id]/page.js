@@ -52,7 +52,7 @@ export default function InvestorDetail({ params }) {
           name: form.name.trim(),
           storage: form.storage.trim(),
           price: Number(form.price),
-          imei: form.imei.trim() || undefined, 
+          imei: form.imei.trim() || undefined,
         }),
       });
       setForm({ name: '', storage: '', price: '', imei: '' });
@@ -73,12 +73,16 @@ export default function InvestorDetail({ params }) {
   const totals = data?.summary || data?.totals || null;
 
   // profit helpers
-  const profit = (p) => typeof p.sellPrice === 'number' ? Math.max(0, Number(p.sellPrice) - Number(p.price || 0)) : 0;
+  const profit = (p) =>
+    typeof p.sellPrice === 'number'
+      ? Math.max(0, Number(p.sellPrice) - Number(p.price || 0))
+      : 0;
   const investorCut = (p) => profit(p) / 2;
 
   // compute client-side if server didn't send totals
   const buyTotal = totals?.buyTotal ?? sum(phones.map(p => p.price));
-  const investorProfitTotal = totals?.investorProfitTotal ?? sum(phones.filter(p => p.isSold).map(investorCut));
+  const investorProfitTotal =
+    totals?.investorProfitTotal ?? sum(phones.filter(p => p.isSold).map(investorCut));
   const payoutsTotal = totals?.payoutsTotal ?? sum(payouts.map(x => x.amount));
   const totalCash = totals?.totalCash ?? Math.max(0, buyTotal + investorProfitTotal - payoutsTotal);
 
@@ -91,8 +95,14 @@ export default function InvestorDetail({ params }) {
     if (p.isSold) return;
     setSellId(null);
     setEditId(p._id);
-    setEditForm({ name: p.name, storage: p.storage, price: String(p.price ?? ''),imei: p.imei || '' });
+    setEditForm({
+      name: p.name,
+      storage: p.storage,
+      price: String(p.price ?? ''),
+      imei: p.imei || '',
+    });
   }
+
   async function saveEdit() {
     if (!editId) return;
     setEditSaving(true);
@@ -104,7 +114,7 @@ export default function InvestorDetail({ params }) {
           name: editForm.name.trim(),
           storage: editForm.storage.trim(),
           price: Number(editForm.price),
-          imei: editForm.imei.trim() || undefined, 
+          imei: editForm.imei.trim() || undefined,
         }),
       });
       setEditId(null);
@@ -115,7 +125,10 @@ export default function InvestorDetail({ params }) {
       setEditSaving(false);
     }
   }
-  function cancelEdit() { setEditId(null); }
+
+  function cancelEdit() {
+    setEditId(null);
+  }
 
   // sell
   function startSell(p) {
@@ -124,6 +137,7 @@ export default function InvestorDetail({ params }) {
     setSellId(p._id);
     setSellPrice(String(p.sellPrice ?? p.price ?? ''));
   }
+
   async function saveSell() {
     if (!sellId) return;
     const priceNum = Number(sellPrice);
@@ -147,7 +161,11 @@ export default function InvestorDetail({ params }) {
       setSellSaving(false);
     }
   }
-  function cancelSell() { setSellId(null); setSellPrice(''); }
+
+  function cancelSell() {
+    setSellId(null);
+    setSellPrice('');
+  }
 
   // delete
   async function removePhone(p) {
@@ -191,6 +209,7 @@ export default function InvestorDetail({ params }) {
       setPaying(false);
     }
   }
+
   async function deletePayout(payId) {
     if (!confirm('Delete this payout?')) return;
     try {
@@ -202,7 +221,11 @@ export default function InvestorDetail({ params }) {
   }
 
   if (!data) {
-    return <div className="rounded-xl border border-gray-200 bg-white p-6 text-gray-600 shadow-sm">Loading…</div>;
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-6 text-gray-600 shadow-sm">
+        Loading…
+      </div>
+    );
   }
 
   return (
@@ -212,30 +235,42 @@ export default function InvestorDetail({ params }) {
         <div>
           <h2 className="text-2xl font-bold">Investor</h2>
           <p className="text-sm text-gray-500">
-            Manage phones & payouts for <span className="font-medium text-gray-700">{investor.name}</span>.
+            Manage phones & payouts for{' '}
+            <span className="font-medium text-gray-700">{investor.name}</span>.
           </p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-
         <Stat title="Pending Cash (net)" value={formatCurrency(totalCash)} />
         <Stat title="Buy Value (all)" value={formatCurrency(buyTotal)} />
         <Stat title="Investor Profit (50%)" value={formatCurrency(investorProfitTotal)} />
         <Stat title="Payouts (paid to investor)" value={formatCurrency(payoutsTotal)} />
-        
-        <Stat title="Available (Unsold)" value={`${availCount} · ${formatCurrency(availTotal)}`} />
+        <Stat
+          title="Available (Unsold)"
+          value={`${availCount} · ${formatCurrency(availTotal)}`}
+        />
       </div>
 
-      {err && <div className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+      {err && (
+        <div className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {err}
+        </div>
+      )}
 
       {/* Record Payout */}
-      <form onSubmit={addPayout} className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <form
+        onSubmit={addPayout}
+        className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      >
         <h3 className="text-lg font-semibold">Record Payout to Investor</h3>
         <div className="grid gap-3 sm:grid-cols-4">
           <input
-            type="number" min="0" step="1" required
+            type="number"
+            min="0"
+            step="1"
+            required
             className="rounded-xl border border-gray-300 px-3 py-2"
             placeholder="Amount (e.g. 1000)"
             value={payout.amount}
@@ -279,15 +314,19 @@ export default function InvestorDetail({ params }) {
           <tbody>
             {(payouts ?? []).length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-center text-gray-500" colSpan={4}>No payouts yet.</td>
+                <td className="px-4 py-6 text-center text-gray-500" colSpan={4}>
+                  No payouts yet.
+                </td>
               </tr>
             ) : (
               [...payouts]
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .map(p => (
+                .map((p) => (
                   <tr key={p._id} className="border-t last:border-b">
                     <td className="px-4 py-3">{formatDate(p.date)}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">{formatCurrency(p.amount)}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {formatCurrency(p.amount)}
+                    </td>
                     <td className="px-4 py-3 text-gray-600">{p.note || '—'}</td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -306,47 +345,73 @@ export default function InvestorDetail({ params }) {
       </div>
 
       {/* Add Phone */}
-      <form onSubmit={addPhone} className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <form
+        onSubmit={addPhone}
+        className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      >
         <h3 className="text-lg font-semibold">Add Phone</h3>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <input required className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Model"
-            value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-          <input required className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Storage"
-            value={form.storage} onChange={e => setForm({ ...form, storage: e.target.value })} />
-          <input required type="number" min="0" className="rounded-xl border border-gray-300 px-3 py-2" placeholder="Buy Price"
-            value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
-          <input className="rounded-xl border border-gray-300 px-3 py-2" placeholder="IMEI (optional)"
-        value={form.imei} onChange={e => setForm({ ...form, imei: e.target.value })} />
+        <div className="grid gap-3 sm:grid-cols-4">
+          <input
+            required
+            className="rounded-xl border border-gray-300 px-3 py-2"
+            placeholder="Model"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <input
+            required
+            className="rounded-xl border border-gray-300 px-3 py-2"
+            placeholder="Storage"
+            value={form.storage}
+            onChange={(e) => setForm({ ...form, storage: e.target.value })}
+          />
+          <input
+            required
+            type="number"
+            min="0"
+            className="rounded-xl border border-gray-300 px-3 py-2"
+            placeholder="Buy Price"
+            value={form.price}
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
+          />
+          <input
+            className="rounded-xl border border-gray-300 px-3 py-2"
+            placeholder="IMEI (optional)"
+            value={form.imei}
+            onChange={(e) => setForm({ ...form, imei: e.target.value })}
+          />
         </div>
         <div className="flex items-center justify-end">
-          <button type="submit" disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 disabled:opacity-60"
+          >
             {saving ? 'Saving…' : '+ Add Phone'}
           </button>
         </div>
       </form>
 
-      {/* Phones table (with Profit & Investor Profit columns) */}
+      {/* Phones table */}
       <PhonesTable
-  phones={phones}
-  editId={editId}
-  editForm={editForm}
-  setEditForm={setEditForm}      
-  sellId={sellId}
-  sellPrice={sellPrice}
-  setSellPrice={setSellPrice}    
-  editSaving={editSaving}
-  sellSaving={sellSaving}
-  busyId={busyId}
-  startEdit={startEdit}
-  saveEdit={saveEdit}
-  cancelEdit={cancelEdit}
-  startSell={startSell}
-  saveSell={saveSell}
-  cancelSell={cancelSell}
-  removePhone={removePhone}
-/>
-
+        phones={phones}
+        editId={editId}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        sellId={sellId}
+        sellPrice={sellPrice}
+        setSellPrice={setSellPrice}
+        editSaving={editSaving}
+        sellSaving={sellSaving}
+        busyId={busyId}
+        startEdit={startEdit}
+        saveEdit={saveEdit}
+        cancelEdit={cancelEdit}
+        startSell={startSell}
+        saveSell={saveSell}
+        cancelSell={cancelSell}
+        removePhone={removePhone}
+      />
     </div>
   );
 }
@@ -355,13 +420,29 @@ export default function InvestorDetail({ params }) {
 
 function PhonesTable(props) {
   const {
-    phones, editId, editForm, sellId, sellPrice,
-    editSaving, sellSaving, busyId,
-    startEdit, saveEdit, cancelEdit,
-    startSell, saveSell, cancelSell, removePhone,
+    phones,
+    editId,
+    editForm,
+    setEditForm,
+    sellId,
+    sellPrice,
+    setSellPrice,
+    editSaving,
+    sellSaving,
+    busyId,
+    startEdit,
+    saveEdit,
+    cancelEdit,
+    startSell,
+    saveSell,
+    cancelSell,
+    removePhone,
   } = props;
 
-  const profit = (p) => typeof p.sellPrice === 'number' ? Math.max(0, Number(p.sellPrice) - Number(p.price || 0)) : 0;
+  const profit = (p) =>
+    typeof p.sellPrice === 'number'
+      ? Math.max(0, Number(p.sellPrice) - Number(p.price || 0))
+      : 0;
   const investorCut = (p) => profit(p) / 2;
 
   return (
@@ -384,10 +465,15 @@ function PhonesTable(props) {
         <tbody>
           {phones.length === 0 ? (
             <tr>
-              <td className="px-4 py-6 text-center text-gray-500" colSpan={9}>No phones yet. Add your first phone above.</td>
+              <td
+                className="px-4 py-6 text-center text-gray-500"
+                colSpan={10}
+              >
+                No phones yet. Add your first phone above.
+              </td>
             </tr>
           ) : (
-            phones.map(p => {
+            phones.map((p) => {
               const isEditing = editId === p._id;
               const isSelling = sellId === p._id;
               const profitValue = profit(p);
@@ -395,94 +481,182 @@ function PhonesTable(props) {
 
               return (
                 <tr key={p._id} className="border-t last:border-b">
+                  {/* Model */}
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {isEditing ? (
                       <input
                         className="w-full rounded-xl border border-gray-300 px-3 py-2"
                         value={editForm.name}
-                        onChange={e => props.editForm && props.editForm.name !== undefined && props.editForm && (props.editForm.name = e.target.value)}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                        }
                       />
-                    ) : p.name}
+                    ) : (
+                      p.name
+                    )}
                   </td>
+
+                  {/* Storage */}
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <input
                         className="w-full rounded-xl border border-gray-300 px-3 py-2"
                         value={editForm.storage}
-                        onChange={e => props.editForm && (props.editForm.storage = e.target.value)}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({ ...prev, storage: e.target.value }))
+                        }
                       />
-                    ) : p.storage}
+                    ) : (
+                      p.storage
+                    )}
                   </td>
+
+                  {/* Buy Price */}
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <input
-                        type="number" min="0"
+                        type="number"
+                        min="0"
                         className="w-full rounded-xl border border-gray-300 px-3 py-2"
                         value={editForm.price}
-                        onChange={e => props.editForm && (props.editForm.price = e.target.value)}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({ ...prev, price: e.target.value }))
+                        }
                       />
-                    ) : formatCurrency(p.price)}
+                    ) : (
+                      formatCurrency(p.price)
+                    )}
                   </td>
-                   <td className="px-4 py-3">
-              {isEditing ? (
-                <input
-                  className="w-full rounded-xl border border-gray-300 px-3 py-2"
-                  value={editForm.imei}
-                  onChange={e => setEditForm({ ...editForm, imei: e.target.value })}
-                />
-              ) : (
-                p.imei || '—'
-              )}
-            </td>
+
+                  {/* IMEI */}
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <input
+                        className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                        value={editForm.imei}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({ ...prev, imei: e.target.value }))
+                        }
+                      />
+                    ) : (
+                      p.imei || '—'
+                    )}
+                  </td>
+
+                  {/* Sell Price */}
                   <td className="px-4 py-3">
                     {p.isSold && !isSelling ? (
                       formatCurrency(p.sellPrice)
                     ) : isSelling ? (
                       <input
-                        type="number" min="0"
+                        type="number"
+                        min="0"
                         className="w-full rounded-xl border border-gray-300 px-3 py-2"
                         placeholder="Sell price"
                         value={sellPrice}
-                        onChange={(e) => props.setSellPrice ? props.setSellPrice(e.target.value) : null}
+                        onChange={(e) => setSellPrice(e.target.value)}
                       />
-                    ) : '—'}
-                  </td>
-                  <td className="px-4 py-3">{p.isSold ? formatCurrency(profitValue) : '—'}</td>
-                  <td className="px-4 py-3">{p.isSold ? formatCurrency(investorShare) : '—'}</td>
-                  <td className="px-4 py-3">
-                    {p.isSold ? (
-                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Sold</span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">Available</span>
+                      '—'
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</td>
+
+                  {/* Profit */}
+                  <td className="px-4 py-3">
+                    {p.isSold ? formatCurrency(profitValue) : '—'}
+                  </td>
+
+                  {/* Investor Profit */}
+                  <td className="px-4 py-3">
+                    {p.isSold ? formatCurrency(investorShare) : '—'}
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-4 py-3">
+                    {p.isSold ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        Sold
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                        Available
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Added */}
+                  <td className="px-4 py-3 text-gray-500">
+                    {p.createdAt
+                      ? new Date(p.createdAt).toLocaleDateString()
+                      : '—'}
+                  </td>
+
+                  {/* Actions */}
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       {isEditing ? (
                         <>
-                          <button type="button" onClick={props.saveEdit} disabled={editSaving}
-                            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-white hover:bg-emerald-500 disabled:opacity-60">Save</button>
-                          <button type="button" onClick={props.cancelEdit}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">Cancel</button>
+                          <button
+                            type="button"
+                            onClick={saveEdit}
+                            disabled={editSaving}
+                            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-white hover:bg-emerald-500 disabled:opacity-60"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
                         </>
                       ) : isSelling ? (
                         <>
-                          <button type="button" onClick={props.saveSell} disabled={sellSaving}
-                            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500 disabled:opacity-60">{sellSaving ? 'Marking…' : 'Mark Sold'}</button>
-                          <button type="button" onClick={props.cancelSell}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">Cancel</button>
+                          <button
+                            type="button"
+                            onClick={saveSell}
+                            disabled={sellSaving}
+                            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500 disabled:opacity-60"
+                          >
+                            {sellSaving ? 'Marking…' : 'Mark Sold'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelSell}
+                            className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
                         </>
                       ) : (
                         <>
-                          <button type="button" onClick={() => props.startEdit(p)} disabled={p.isSold}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:opacity-60">Edit</button>
+                          <button
+                            type="button"
+                            onClick={() => startEdit(p)}
+                            disabled={p.isSold}
+                            className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:opacity-60"
+                          >
+                            Edit
+                          </button>
                           {!p.isSold && (
-                            <button type="button" onClick={() => props.startSell(p)}
-                              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500">Sell</button>
+                            <button
+                              type="button"
+                              onClick={() => startSell(p)}
+                              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500"
+                            >
+                              Sell
+                            </button>
                           )}
-                          <button type="button" onClick={() => props.removePhone(p)} disabled={p.isSold || busyId === p._id}
-                            className="rounded-lg bg-rose-600 px-3 py-1.5 text-white hover:bg-rose-500 disabled:opacity-60">{busyId === p._id ? 'Deleting…' : 'Delete'}</button>
+                          <button
+                            type="button"
+                            onClick={() => removePhone(p)}
+                            disabled={p.isSold || busyId === p._id}
+                            className="rounded-lg bg-rose-600 px-3 py-1.5 text-white hover:bg-rose-500 disabled:opacity-60"
+                          >
+                            {busyId === p._id ? 'Deleting…' : 'Delete'}
+                          </button>
                         </>
                       )}
                     </div>
@@ -506,9 +680,19 @@ function Stat({ title, value }) {
   );
 }
 
-function sum(arr) { return arr.reduce((acc, n) => acc + Number(n || 0), 0); }
-function formatCurrency(n) { return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
-function formatDate(d) { try { return new Date(d).toLocaleDateString(); } catch { return '—'; } }
+function sum(arr) {
+  return arr.reduce((acc, n) => acc + Number(n || 0), 0);
+}
+function formatCurrency(n) {
+  return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+function formatDate(d) {
+  try {
+    return new Date(d).toLocaleDateString();
+  } catch {
+    return '—';
+  }
+}
 function extractError(e) {
   try {
     const msg = typeof e === 'string' ? e : e?.message || '';

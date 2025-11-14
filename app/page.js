@@ -30,7 +30,7 @@ export default function Dashboard() {
       setDays([]);
     }
   }
-
+console.log("process.env.NEXT_PUBLIC_API_URL")
   useEffect(() => { loadLatest(); loadDays(); }, []);
 
   async function startDay() {
